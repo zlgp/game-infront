@@ -33,9 +33,9 @@
               </p>
               <div class="load_way">
                 <a
-                  :href="detailObj.windows_down_url"
-                  v-if="detailObj.windows_down_url!=''"
-                  :download="detailObj.windows_down_url"
+                  :href="detailObj.window_file"
+                  v-if="detailObj.window_file!=''"
+                  :download="detailObj.window_file"
                   @click="download()"
                 >
                   <button>
@@ -44,9 +44,9 @@
                   </button>
                 </a>
                 <a
-                  :href="detailObj.android_down_url"
-                  v-if="detailObj.android_down_url!=''"
-                  :download="detailObj.android_down_url"
+                  :href="detailObj.az_file"
+                  v-if="detailObj.az_file!=''"
+                  :download="detailObj.az_file"
                   @click="download()"
                 >
                   <button>
@@ -55,9 +55,9 @@
                   </button>
                 </a>
                 <a
-                  :href="detailObj.ios_down_url"
-                  v-if="detailObj.ios_down_url!=''"
-                  :download="detailObj.ios_down_url"
+                  :href="detailObj.ios_file"
+                  v-if="detailObj.ios_file!=''"
+                  :download="detailObj.ios_file"
                   @click="download()"
                 >
                   <button>
@@ -75,8 +75,8 @@
             </div>
             <div class>
               <el-carousel indicator-position="outside">
-                <el-carousel-item v-for="(item,index) in detailObj.screen" :key="index">
-                  <img :src="item.url" alt />
+                <el-carousel-item v-for="(item,index) in detailObj.game_pic" :key="index">
+                  <img :src="item" alt />
                 </el-carousel-item>
               </el-carousel>
             </div>
@@ -84,17 +84,17 @@
               <p class="line"></p>
               <h1>游戏介绍</h1>
             </div>
-            <div class="recommend">{{detailObj.summary}}</div>
+            <div class="recommend">{{detailObj.game_intr}}</div>
             <div class="detail_download_title">
               <p class="line"></p>
               <h1>故事背景</h1>
             </div>
-            <div class="bg">{{detailObj.background}}</div>
+            <div class="bg">{{detailObj.game_bag}}</div>
             <div class="detail_download_title">
               <p class="line"></p>
               <h1>游戏特色</h1>
             </div>
-            <div class="special">{{detailObj.feature}}</div>
+            <div class="special">{{detailObj.game_fea}}</div>
             <div v-if="windows!=''">
               <div class="detail_download_title">
                 <p class="line"></p>
@@ -148,7 +148,7 @@
                   </li>
                   <li>
                     <span>[安卓]</span>
-                    <p>{{app.android}}</p>
+                    <p>{{app.az}}</p>
                   </li>
                 </ul>
               </div>
@@ -251,6 +251,7 @@ export default {
       page: 1,
       // 用户id
       userId: JSON.parse(localStorage.getItem("uerInfo")).id,
+      token: JSON.parse(localStorage.getItem("uerInfo")).token,
       total_page: ""
     };
   },
@@ -261,14 +262,16 @@ export default {
   },
   methods: {
     getDetail() {
-      this.$http.post("game/game/info", { id: this.id }).then(res => {
-        let { code, msg } = res.data;
-        if (code == 1) {
-          this.detailObj = res.data.data;
-          this.windows = this.detailObj.config_require.windows;
-          this.app = this.detailObj.config_require.app;
-        }
-      });
+      this.$http
+        .post("games/personalGames/lookInfoById", { id: this.id },"Bearer "+this.token)
+        .then(res => {
+          let { code, msg } = res.data;
+          if (code == 1) {
+            this.detailObj = res.data.data;
+            this.windows = this.detailObj.window_conf;
+            this.app = this.detailObj.app_conf;
+          }
+        });
     },
     // 获取猜你喜欢
     getLikeGames() {
@@ -281,7 +284,7 @@ export default {
     },
     download() {
       this.$http
-        .post("game/game/downloadNums", { game_id: this.detailObj.id })
+        .post("/games/personalGames/downNum", { game_id: this.detailObj.id },"Bearer "+this.token)
         .then(res => {});
     },
     // 获取评论
@@ -520,7 +523,6 @@ export default {
                     color: pink;
                   }
                 }
-               
               }
             }
             .nocomment {

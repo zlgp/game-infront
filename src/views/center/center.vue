@@ -76,14 +76,18 @@ export default {
       this.current = index;
     },
     outLoing() {
-      this.$http.post("member/logout/index", {},"Bearer "+this.token).then(res => {
-        let { status } = res.data;
-        if (status == 1) {
-          getMsg.msg("退出成功");
-          this.logout();
-          this.$router.push("/index");
-        }
-      });
+      this.logout();
+      this.$router.push("/index");
+      // this.$http
+      //   .post("member/logout/index", {}, "Bearer " + this.token)
+      //   .then(res => {
+      //     let { status } = res.data;
+      //     if (status == 1) {
+      //       getMsg.msg("退出成功");
+      //       this.logout();
+      //       this.$router.push("/index");
+      //     }
+      //   });
     },
     ...mapMutations(["logout"])
   }

@@ -21,7 +21,7 @@
             <h6 v-if="item.status==1">已审核</h6>
             <h6 v-if="item.status==2">待审核</h6>
             <div class="game_btn">
-              <goDetail :id="item.id" v-if="item.status==1">
+              <goDetail :id="item.id">
                 <button class="detail">查看详情</button>
               </goDetail>
               <button class="del" @click="deleteGanme(item.id)">删除</button>
@@ -72,14 +72,14 @@ export default {
     // 获取上传的游戏
     getUploadGames() {
       this.$http
-        .post("member/user/myGames", { page: this.page }, this.token)
+        .post("games/personalGames/List", { page: this.page }, "Bearer " + this.token)
         .then(res => {
-          let { status, message } = res.data;
-          if (status == 1) {
+          let { code, msg } = res.data;
+          if (code == 1) {
             this.Data = true;
-            this.UploadGamesList = res.data.data.data;
+            this.UploadGamesList = res.data.data.list;
             this.total = res.data.data.total_page;
-          } else if (status == 20003) {
+          } else if (code == 20003) {
             this.Data = false;
           } else {
             this.Data = true;
@@ -99,10 +99,10 @@ export default {
       })
         .then(() => {
           this.$http
-            .post("member/user/deleteGameById", { game_id: id }, this.token)
+            .post("games/personalGames/deleteById", { id: id }, "Bearer " + this.token)
             .then(res => {
-              let { status } = res.data;
-              if (status == 1) {
+              let { code } = res.data;
+              if (code == 1) {
                 this.getUploadGames();
               }
             });

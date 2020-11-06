@@ -190,7 +190,7 @@
                       <span>{{item.create_time}}</span>
                     </div>
                     <p>{{item.content}}</p>
-                    <a class="el-icon-thumb" title="点赞" @click="giveLike(item.comment_id)"></a>
+                    <a class="el-icon-thumb" title="点赞" @click="giveLike(item.id,item.game_id)"></a>
                     <i>({{item.vote_nums}})</i>
                   </li>
                 </ul>
@@ -257,13 +257,17 @@ export default {
   },
   mounted() {
     this.getDetail();
-    this.getLikeGames();
+    // this.getLikeGames();
     this.getComment();
   },
   methods: {
     getDetail() {
       this.$http
-        .post("games/personalGames/lookInfoById", { id: this.id },"Bearer "+this.token)
+        .post(
+          "games/personalGames/lookInfoById",
+          { id: this.id },
+          "Bearer " + this.token
+        )
         .then(res => {
           let { code, msg } = res.data;
           if (code == 1) {
@@ -284,35 +288,42 @@ export default {
     },
     download() {
       this.$http
-        .post("/games/personalGames/downNum", { game_id: this.detailObj.id },"Bearer "+this.token)
+        .post(
+          "/games/personalGames/downNum",
+          { game_id: this.detailObj.id },
+          "Bearer " + this.token
+        )
         .then(res => {});
     },
     // 获取评论
     getComment() {
       this.$http
-        .post("game/game/comments", {
-          game_id: this.id,
-          page: this.page
-        })
+        .post(
+          "comments/commentList",
+          {
+            game_id: this.id,
+            page: this.page
+          },
+          "Bearer " + this.token
+        )
         .then(res => {
           let { code } = res.data;
           if (code == 1) {
             this.commentListData = [
               ...this.commentListData,
-              ...res.data.data.list
+              ...res.data.data
             ];
-            this.total_page = res.data.data.total_page;
+            this.total_page = res.data.total_page;
           }
         });
     },
     // 提交评论
     referComment() {
       this.$http
-        .post("game/game/postComment", {
+        .post("comments/postComment", {
           game_id: this.id,
           content: this.content,
-          member_id: this.userId
-        })
+        },"Bearer " + this.token)
         .then(res => {
           loading.start("评论中");
           let { code, msg } = res.data;
@@ -331,12 +342,12 @@ export default {
         });
     },
     // 点赞评论
-    giveLike(comment_id) {
+    giveLike(comment_id,game_id) {
       this.$http
-        .post("game/game/vote", {
+        .post("comments/vote", {
           comment_id,
-          member_id: this.userId
-        })
+          game_id
+        },"Bearer " + this.token)
         .then(res => {
           let { code, msg } = res.data;
           if (code == 1) {

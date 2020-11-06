@@ -45,7 +45,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="游戏语言:" prop="language">
-            <el-select v-model="uploadingFrom.language" placeholder="请选择语言">
+            <el-select v-model="uploadingFrom.lang_id" placeholder="请选择语言">
               <el-option label="简体中文" :value="1"></el-option>
               <el-option label="繁体中文" :value="2"></el-option>
               <el-option label="英文" :value="3"></el-option>
@@ -55,7 +55,7 @@
           <el-form-item label="游戏介绍:" prop="summary">
             <el-input
               type="textarea"
-              v-model="uploadingFrom.summary"
+              v-model="uploadingFrom.game_intr"
               placeholder="(300字以内)"
               :maxlength="300"
             ></el-input>
@@ -63,7 +63,7 @@
           <el-form-item label="故事背景:" prop="background">
             <el-input
               type="textarea"
-              v-model="uploadingFrom.background"
+              v-model="uploadingFrom.game_bag"
               placeholder="(300字以内)"
               :maxlength="300"
             ></el-input>
@@ -71,12 +71,12 @@
           <el-form-item label="游戏特色:" prop="feature">
             <el-input
               type="textarea"
-              v-model="uploadingFrom.feature"
+              v-model="uploadingFrom.game_fea"
               placeholder="(300字以内)"
               :maxlength="300"
             ></el-input>
           </el-form-item>
-          <el-form-item label="游戏截图:" prop="photo_urls" class="cover">
+          <el-form-item label="游戏截图:" prop="game_pic" class="cover">
             <p>(图片大小为1650X873px)</p>
             <el-upload
               list-type="picture-card"
@@ -105,27 +105,33 @@
                 </li>
                 <li>
                   <span>[内存]</span>
-                  <el-input v-model="uploadingFrom.ram" placeholder="8GB"></el-input>
+                  <el-input v-model="uploadingFrom.window_conf.ram" placeholder="8GB"></el-input>
                 </li>
                 <li>
                   <span>[显卡]</span>
-                  <el-input v-model="uploadingFrom.gpu" placeholder="nVidia GeForce GTX 1050 3GB"></el-input>
+                  <el-input
+                    v-model="uploadingFrom.window_conf.gpu"
+                    placeholder="nVidia GeForce GTX 1050 3GB"
+                  ></el-input>
                 </li>
                 <li>
                   <span>[硬盘]</span>
-                  <el-input v-model="uploadingFrom.hd" placeholder="12 GB"></el-input>
+                  <el-input v-model="uploadingFrom.window_conf.hd" placeholder="12 GB"></el-input>
                 </li>
                 <li>
                   <span>[CPU]</span>
-                  <el-input v-model="uploadingFrom.cpu" placeholder="Intel Core i5"></el-input>
+                  <el-input v-model="uploadingFrom.window_conf.cpu" placeholder="Intel Core i5"></el-input>
                 </li>
                 <li>
                   <span>[系统]</span>
-                  <el-input v-model="uploadingFrom.system" placeholder="64-bit Windows 7"></el-input>
+                  <el-input
+                    v-model="uploadingFrom.window_conf.system"
+                    placeholder="64-bit Windows 7"
+                  ></el-input>
                 </li>
                 <li>
                   <span>[文本]</span>
-                  <el-input v-model="uploadingFrom.text" placeholder="中文简体"></el-input>
+                  <el-input v-model="uploadingFrom.window_conf.text" placeholder="中文简体"></el-input>
                 </li>
               </ul>
             </div>
@@ -137,12 +143,12 @@
                 </li>
                 <li>
                   <span>[IOS]</span>
-                  <el-input v-model="uploadingFrom.ios" placeholder="iOS 11 或以上"></el-input>
+                  <el-input v-model="uploadingFrom.app_conf.ios" placeholder="iOS 11 或以上"></el-input>
                 </li>
                 <li>
                   <span>[安卓]</span>
                   <el-input
-                    v-model="uploadingFrom.android"
+                    v-model="uploadingFrom.app_conf.az"
                     placeholder="Android v7.0 (Nougat OS) 或以上"
                   ></el-input>
                 </li>
@@ -229,25 +235,30 @@ export default {
         game_name: "",
         cover: "",
         category_id: "",
-        language: "",
-        summary: "",
-        background: "",
-        feature: "",
-        photo_urls: [],
-        ram: "",
-        gpu: "",
-        hd: "",
-        cpu: "",
-        system: "",
-        text: "",
-        ios: "",
-        android: "",
-        windows_down_url: "",
-        windows_game_size: "",
-        android_down_url: "",
-        android_game_size: "",
-        ios_down_url: "",
-        ios_game_size: ""
+        lang_id: "",
+        game_intr: "",
+        game_bag: "",
+        game_fea: "",
+        game_pic: [],
+        window_conf: {
+          ram: "",
+          gpu: "",
+          hd: "",
+          cpu: "",
+          system: "",
+          text: ""
+        },
+        app_conf: {
+          ios: "",
+          az: ""
+        },
+
+        window_file: "",
+        // windows_game_size: "",
+        az_file: "",
+        // android_game_size: "",
+        ios_file: "",
+        // ios_game_size: ""
       },
       fileList: [],
       rules: {
@@ -267,7 +278,7 @@ export default {
         feature: [
           { required: true, message: "请填写游戏特色", trigger: "blur" }
         ],
-        photo_urls: [
+        game_pic: [
           { required: true, message: "请上传游戏截图", trigger: "blur" }
         ],
         deploy: [{ required: true, message: "请填写配置", trigger: "blur" }],
@@ -287,15 +298,15 @@ export default {
   mounted() {
     // 获取不同环境下的接口地址
     this.getCategory();
-    this.getAPP();
+    // this.getAPP();
   },
   methods: {
     //获取游戏分类
     getCategory() {
-      this.$http.post("game/category/index", {}).then(res => {
-        let { status, message } = res.data;
-        if (status == 1) {
-          this.CategoryList = res.data.data.slice(1);
+      this.$http.post("games/wholeGames/classify", {}).then(res => {
+        let { code, msg } = res.data;
+        if (code == 1) {
+          this.CategoryList = res.data.data.list;
         }
       });
     },
@@ -317,8 +328,9 @@ export default {
       var formData = new FormData();
       formData.append("image", content);
       axios
-        .post("game/upload/image", formData, {
+        .post("upload/game/image", formData, {
           headers: {
+            Authorization: "Bearer " + this.token,
             "Content-Type": "multipart/form-data",
             "Mon-Api-Time":
               Date.parse(new Date()) / 10 + parseInt(10 * Math.random()),
@@ -329,9 +341,9 @@ export default {
           }
         })
         .then(res => {
-          let { status } = res.data;
-          let { path } = res.data.data;
-          if (status == 1) {
+          let { code } = res.data;
+          let { path } = res.data;
+          if (code == 1) {
             getMsg.msg("上传成功");
             this.uploadingFrom.cover = path;
           } else {
@@ -351,8 +363,9 @@ export default {
       var formData = new FormData();
       formData.append("image", content);
       axios
-        .post("game/upload/image", formData, {
+        .post("upload/game/image", formData, {
           headers: {
+            Authorization: "Bearer " + this.token,
             "Content-Type": "multipart/form-data",
             "Mon-Api-Time":
               Date.parse(new Date()) / 10 + parseInt(10 * Math.random()),
@@ -363,11 +376,11 @@ export default {
           }
         })
         .then(res => {
-          let { status } = res.data;
-          let { path } = res.data.data;
-          if (status == 1) {
+          let { code } = res.data;
+          let { path } = res.data;
+          if (code == 1) {
             getMsg.msg("上传成功");
-            this.uploadingFrom.photo_urls.push({ key: uid, url: path });
+            this.uploadingFrom.game_pic.push(path);
           } else {
             getMsg.msg("上传失败");
           }
@@ -375,9 +388,9 @@ export default {
     },
     // 游戏截图删除后
     picRemove(file) {
-      this.uploadingFrom.photo_urls.forEach((element, index) => {
-        if (this.uploadingFrom.photo_urls[index].key == file.uid) {
-          this.uploadingFrom.photo_urls.splice(index, 1);
+      this.uploadingFrom.game_pic.forEach((element, index) => {
+        if (this.uploadingFrom.game_pic[index].key == file.uid) {
+          this.uploadingFrom.game_pic.splice(index, 1);
         }
       });
       getMsg.msg("您已删除上传的图片");
@@ -389,8 +402,9 @@ export default {
       var formData = new FormData();
       formData.append("file", content);
       axios
-        .post("game/upload/file", formData, {
+        .post("upload/game/file", formData, {
           headers: {
+            Authorization: "Bearer " + this.token,
             "Content-Type": "multipart/form-data",
             "Mon-Api-Time":
               Date.parse(new Date()) / 10 + parseInt(10 * Math.random()),
@@ -401,13 +415,15 @@ export default {
           }
         })
         .then(res => {
-          let { status } = res.data;
-          let { path, game_size } = res.data.data;
-          if (status == 1) {
+          let { code } = res.data;
+          // let { path, game_size } = res.data;
+          let { path } = res.data;
+
+          if (code == 1) {
             loading.end();
             getMsg.msg("上传成功");
-            this.uploadingFrom.windows_down_url = path;
-            this.uploadingFrom.windows_game_size = game_size;
+            this.uploadingFrom.window_file = path;
+            // this.uploadingFrom.windows_game_size = game_size;
           } else {
             loading.end();
             getMsg.msg("上传失败");
@@ -416,7 +432,7 @@ export default {
     },
     // 删除
     windowRemove() {
-      this.uploadingFrom.windows_down_url = "";
+      this.uploadingFrom.window_file = "";
     },
     azUpload(file) {
       loading.start("上传中");
@@ -426,6 +442,7 @@ export default {
       axios
         .post("game/upload/file", formData, {
           headers: {
+            "Authorization": "Bearer " + this.token,
             "Content-Type": "multipart/form-data",
             "Mon-Api-Time":
               Date.parse(new Date()) / 10 + parseInt(10 * Math.random()),
@@ -436,13 +453,14 @@ export default {
           }
         })
         .then(res => {
-          let { status } = res.data;
-          let { path, game_size } = res.data.data;
-          if (status == 1) {
+          let { code } = res.data;
+          // let { path, game_size } = res.data.data;
+          let { path } = res.data;
+          if (code == 1) {
             loading.end();
             getMsg.msg("上传成功");
-            this.uploadingFrom.android_down_url = path;
-            this.uploadingFrom.android_game_size = game_size;
+            this.uploadingFrom.az_file = path;
+            // this.uploadingFrom.android_game_size = game_size;
           } else {
             loading.end();
             getMsg.msg("上传失败");
@@ -450,7 +468,7 @@ export default {
         });
     },
     azRemove() {
-      this.uploadingFrom.android_down_url = "";
+      this.uploadingFrom.az_file = "";
     },
     async iosUpload(file) {
       switch (this.ischecked) {
@@ -523,6 +541,7 @@ export default {
       axios
         .post("game/upload/file", formData, {
           headers: {
+            "Authorization": "Bearer " + this.token,
             "Content-Type": "multipart/form-data",
             "Mon-Api-Time":
               Date.parse(new Date()) / 10 + parseInt(10 * Math.random()),
@@ -533,13 +552,13 @@ export default {
           }
         })
         .then(res => {
-          let { status } = res.data;
-          let { path, game_size } = res.data.data;
-          if (status == 1) {
+          let { code } = res.data;
+          let { path, game_size } = res.data;
+          if (code == 1) {
             loading.end();
             getMsg.msg("上传成功");
-            this.uploadingFrom.ios_down_url = path;
-            this.uploadingFrom.ios_game_size = game_size;
+            this.uploadingFrom.ios_file = path;
+            // this.uploadingFrom.ios_game_size = game_size;
           } else {
             loading.end();
             getMsg.msg("上传失败");
@@ -547,21 +566,27 @@ export default {
         });
     },
     iosRemove() {
-      this.uploadingFrom.ios_down_url = "";
+      this.uploadingFrom.ios_file = "";
       this.ischecked = false;
     },
     upload() {
+      this.uploadingFrom.app_conf=JSON.stringify(this.uploadingFrom.app_conf)
+      this.uploadingFrom.window_conf=JSON.stringify(this.uploadingFrom.window_conf)
       this.$http
-        .post("member/user/uploadGame", { ...this.uploadingFrom }, this.token)
+        .post(
+          "upload/game/uploadGame",
+          { ...this.uploadingFrom },
+          "Bearer " + this.token
+        )
         .then(res => {
           loading.start("上传中");
-          let { status } = res.data;
-          if (status == 1) {
+          let { code } = res.data;
+          if (code == 1) {
             loading.end();
             getMsg.msg("上传成功");
             this.$router.go(0);
           } else {
-                loading.end();
+            loading.end();
             getMsg.msg("上传失败");
           }
         });
